@@ -92,19 +92,6 @@ function extractAssetsFromAwesomeModule(mod, modLocalPath) {
   return result;
 }
 
-function normalizeVendorAssets2(files) {
-  return files.map(f => {
-    if (f.startsWith('/components/')) {
-      return `node_modules/linagora-rse/frontend${f}`;
-    }
-    if (f.startsWith('js/')) {
-      return `node_modules/linagora-rse/frontend/${f}`;
-    }
-
-    return f;
-  });
-}
-
 function normalizeVendorAssets(files) {
   const result = {
     toCopy: [],

@@ -6,8 +6,6 @@ const mkdirp = require('mkdirp');
 const copyDir = require('copy-dir');
 
 const ESN_ROOT = path.resolve(__dirname, 'node_modules', 'linagora-rse');
-const ESN_ROOT_LESS_FILE = path.resolve(ESN_ROOT, 'frontend', 'css', 'styles.less');
-
 
 module.exports = {
   copyEsnLess,
