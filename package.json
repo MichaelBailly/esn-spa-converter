@@ -46,7 +46,7 @@
     "email-addresses": "^3.0.0",
     "glob-all": "^3.2.1",
     "iframe-resizer": "^3.5.5",
-    "jquery": "^2.1.1",
+    "jquery": "^3.5.1",
     "jquery.focus": "^0.1.4",
     "leaflet": "^0.7.3",
     "linagora-rse": "github:linagora/openpaas-esn",
