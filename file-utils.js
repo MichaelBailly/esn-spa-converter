@@ -24,7 +24,7 @@ module.exports = window.angular;
 }
 
 
-async function extractAssetsFromIndexPug(MODULES_USES_NPM, indexHTML) {
+async function extractAssetsFromIndexPug(indexHTML) {
   console.log('extracting javascript assets from esn/index.pug');
   const staticAssets = [];
   const indexHTMLContents = await fs.readFile(indexHTML, { encoding: 'utf8' });
@@ -35,16 +35,10 @@ async function extractAssetsFromIndexPug(MODULES_USES_NPM, indexHTML) {
       if (fPath === 'js/constants.js') {
         return;
       }
-      for (let i = 0; i < MODULES_USES_NPM.length; i++) {
-        if (fPath === MODULES_USES_NPM[i].file) {
-          console.log('ignoring', fPath);
-          return;
-        }
-      }
-      if (fPath.endsWith('.min.js')) {
+/*      if (fPath.endsWith('.min.js')) {
         staticAssets.push(fPath.replace('.min.js', '.js'));
         return;
-      }
+      }*/
       staticAssets.push(fPath);
     }
   });

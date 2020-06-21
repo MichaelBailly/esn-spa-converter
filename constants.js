@@ -170,53 +170,11 @@ module.exports = {
       ]
     }
   ],
-  MODULES_USES_NPM: [
-    {
-      name: 'localforage',
-      file: '/components/localforage/dist/localforage.min.js', // exact match
-      webpackFile: './node_modules/localforage/dist/localforage.min.js'
-    },
-    {
-      name: 'moment',
-      file: '/components/moment/min/moment.min.js',
-      webpackFile: './node_modules/moment/moment.js'
-    },/*
-    {
-      name: 'angular',
-      file: '/components/angular/angular.min.js',
-      webpackFile: './node_modules/angular/angular.js'
-    },*/
-    {
-      name: 'clipboard',
-      file: '/components/clipboard/dist/clipboard.min.js',
-      webpackFile: './node_modules/clipboard/lib/clipboard.js'
-    },
-    {
-      name: 'summernote',
-      file: '/components/summernote/dist/summernote.min.js',
-      webpackFile: './node_modules/summernote/dist/summernote.js'
-    },/*
-    {
-      name: 'jquery',
-      file: '/components/jquery/dist/jquery.min.js',
-      webpackFile: './node_modules/jquery/dist/jquery.js'
-    },*/
-    {
-      name: 'arrive',
-      file: '/components/arrive/minified/arrive.min.js',
-      webpackFile: './node_modules/linagora-rse/frontend/components/arrive/src/arrive.js'
-    },
-    {
-      name: 'angularjs-naturalsort',
-      file: '/components/angularjs-naturalsort/dist/naturalSortVersion.min.js',
-      webpackFile: './node_modules/linagora-rse/frontend/components/angularjs-naturalsort/src/naturalSortVersion.js'
-    },
-    {
-      name: 'angular-clockpicker',
-      file: '/components/angular-clockpicker/dist/angular-clockpicker.min.js',
-      webpackFile: './node_modules/linagora-rse/frontend/components/angular-clockpicker/lib/angular-clockpicker.js'
-    },
-  ],
+
+  /**
+   * The list of modules that were previously fetched through bower,
+   * and were it's now NPM that fetches them.
+   */
   EX_BOWER: [
     {
       name: 'angular',
@@ -388,6 +346,11 @@ module.exports = {
       css: 'animate.css'
     },
     {
+      name: 'arrive',
+      version: '2.2.1',
+      file: 'src/arrive.js'
+    },
+    {
       name: 'autosize',
       version: '3.0.13',
       file: 'dist/autosize.js'
@@ -484,6 +447,11 @@ module.exports = {
       css: 'dist/css/bootstrap3/bootstrap-switch.css'
     },
     {
+      name: 'clipboard',
+      version: '1.5.16',
+      file: 'lib/clipboard.js'
+    },
+    {
       name: 'email-addresses',
       version: '3.0.0',
       file: 'lib/email-addresses.js',
@@ -508,6 +476,11 @@ module.exports = {
       version: '0.7.3',
       file: 'dist/leaflet.js',
       css: 'dist/leaflet.css'
+    },
+    {
+      name: 'localforage',
+      version: '1.7.4', // updated localforag to be webpack compatible
+      file: 'dist/localforage.js',
     },
     {
       name: 'lodash',
@@ -558,6 +531,15 @@ module.exports = {
       name: 'showdown',
       version: '1.5.0',
       file: 'dist/showdown.js',
+    },
+    {
+      name: 'summernote',
+      version: 'linagora/summernote#0.8.2-1',
+      file: [
+        'dist/summernote.js',
+      ], // TODO summernote i18n
+      css: 'dist/summernote.css',
+      isLinagora: true
     },
     {
       name: 'ui-router-extras',
@@ -613,7 +595,18 @@ module.exports = {
 
   ],
 
-  BOWER_ORPHANED: [
+
+
+
+
+
+  /**
+   * Those are modules available on bower but not on NPM
+   *
+   * So for those modules we copy them from 'ESN/frontend/components'
+   * into 'src/frontend/components'
+   */
+   BOWER_ORPHANED: [
     {
       name: 'angular-bootstrap-switch',
       file: 'dist/angular-bootstrap-switch.js',
@@ -621,7 +614,7 @@ module.exports = {
     {
       name: 'angular-clockpicker',
       version: '1.2.0',
-      file: 'lib/angular-clockpicker.js',
+      file: 'dist/angular-clockpicker.min.js',
       isLinagora: true
     },
     {
@@ -648,7 +641,7 @@ module.exports = {
     {
       name: 'angularjs-naturalsort',
       version: 'linagora/angularjs-naturalsort#1.1.4',
-      file: 'src/naturalSortVersion.js',
+      file: 'dist/naturalSortVersion.js',
       isLinagora: true,
     },
     {
@@ -704,11 +697,6 @@ module.exports = {
       css: 'dist/css/xeditable.css'
     },
     {
-      name: 'arrive',
-      version: '2.2.0',
-      file: 'src/arrive.js'
-    },
-    {
       name: 'Autolinker.js',
       version: '0.24.1',
       file: 'dist/Autolinker.js'
@@ -754,11 +742,6 @@ module.exports = {
       version: '0.9.12',
       file: 'js/jquery.Jcrop.js',
       css: 'css/jquery.Jcrop.css'
-    },
-    {
-      name: 'localforage',
-      version: '1.7.4', // updated localforag to be webpack compatible
-      file: 'dist/localforage.js',
     },
     {
       name: 'material-admin',
@@ -938,15 +921,6 @@ module.exports = {
       name: 'remarkable-bootstrap-notify',
       version: '3.1.3',
       file: 'bootstrap-notify.js',
-    },
-    {
-      name: 'summernote',
-      version: 'linagora/summernote#0.8.2-1',
-      file: [
-        'dist/summernote.js',
-      ], // TODO summernote i18n
-      css: 'dist/summernote.css',
-      isLinagora: true
     },
     {
       name: 'twitter-platform-widget',

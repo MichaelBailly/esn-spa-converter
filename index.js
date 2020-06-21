@@ -17,10 +17,12 @@ const SOURCEDIR = `${__dirname}/src`;
 const path = require('path');
 const fs = require('fs').promises;
 const copyFileSync = require('fs').copyFileSync;
+const accessSync = require('fs').accessSync;
+const ACCESS_READ = require('fs').constants.R_OK;
 const glob = require('glob-all');
 const rimraf = require('rimraf');
 const mkdirp = require('mkdirp');
-const { coreModules, dependenceModules, MODULES_USES_NPM } = require('./constants');
+const { coreModules, dependenceModules } = require('./constants');
 const CONSTANTS = require('./constants');
 
 const { createAngularBindingFile, extractAssetsFromIndexPug, copyReplacements, copyComponents } = require('./file-utils');
@@ -92,6 +94,18 @@ function extractAssetsFromAwesomeModule(mod, modLocalPath) {
   return result;
 }
 
+/**
+ * This functino takes all the scripts that have been linked using <script></script> tags,
+ * and return 2 lists: the files that should be copied and included in the webpack index.js file,
+ * and the files that should not be copied, but only linked in the index.js file.
+ *
+ * -> components:
+ *    if component is managed by NPM, no copy necessary
+ *    if component is orphaned (not in NPM), we copy it
+ *
+ *
+ * @param {[String]} files  all the files that are linked through script tag in ESN index.pug
+ */
 function normalizeVendorAssets(files) {
   const result = {
     toCopy: [],
@@ -104,6 +118,22 @@ function normalizeVendorAssets(files) {
       if (inNodeModules) {
         return;
       }
+
+      // now for .min.js we try to get the .js
+      if (f.endsWith('.min.js')) {
+        const notMinified = f.replace('.min.js', '.js');
+        const notMinifiedFullPath = path.resolve(
+          __dirname, `node_modules/linagora-rse/frontend${notMinified}`
+        );
+        try {
+          accessSync(notMinifiedFullPath, ACCESS_READ);
+          console.log(`- using ${notMinifiedFullPath}`);
+          return result.toCopy.push(`node_modules/linagora-rse/frontend${notMinified}`);
+        } catch(e) {
+          // nothing
+        }
+      }
+
       return result.toCopy.push(`node_modules/linagora-rse/frontend${f}`);
     }
     if (f.startsWith('js/')) {
@@ -212,10 +242,6 @@ async function createAngularInjections(coreAssets, coreModules, dependenceModule
 async function createEntryPoint(allFiles) {
   let entryPointContents = 'import "./frontend/all.less";\n';
   // let counter=1;
-  MODULES_USES_NPM.forEach((m) => {
-    const mBase = m.webpackFile.replace('./node_modules/', '');
-    entryPointContents += `require('${mBase}');\n`;
-  });
   allFiles.forEach((f) => {
     relativePath = f.replace(SOURCEDIR, '.');
     entryPointContents += `require('${relativePath}');\n`;
@@ -224,8 +250,8 @@ async function createEntryPoint(allFiles) {
   return fs.writeFile(ENTRYPOINT, entryPointContents);
 }
 
-async function run() {
-  const vendorAssetsRaw = await extractAssetsFromIndexPug(MODULES_USES_NPM, indexHTML);
+async function analyze() {
+  const vendorAssetsRaw = await extractAssetsFromIndexPug(indexHTML);
   const coreAssetsRaw = await extractAssetsFromCoreInjections();
   const coreModulesRaw = extractAssetsFromCoreModules();
   const dependenceModulesRaw = extractAssetFromDependenceModules();
@@ -242,25 +268,43 @@ async function run() {
     angularModulesName: coreModulesRaw.angularModulesName,
     files: normalizeCoreModules(coreModulesRaw.files)
   };
-
-
-
   const dependenceModules = {
     angularModulesName: dependenceModulesRaw.map(m => m.angularModulesName).reduce((acc, val) => acc.concat(val), []),
     files: dependenceModulesRaw.map(m => normalizeDependenceModules(m)).reduce((acc, val) => acc.concat(val), [])
   };
+  const depAwesomeModulesJsFiles = getDependenceModuleSourceJsFilesImports(dependenceModulesRaw);
 
   const allFiles = ['./angular-common.js', './angular-injections.js']
     .concat(vendorAssetsToCopy)
     .concat(coreAssets.files)
     .concat(coreModules.files);
 
+  return {
+    coreAssets,
+    coreModules,
+    dependenceModules,
+    vendorAssetsToLink,
+    depAwesomeModulesJsFiles,
+    allFiles
+  };
+}
+
+async function run() {
+  const {
+    coreAssets,
+    coreModules,
+    dependenceModules,
+    allFiles,
+    vendorAssetsToLink,
+    depAwesomeModulesJsFiles
+  } = await analyze();
+  console.log(allFiles);
+
   cleanSourceDir();
   await createAngularBindingFile(SOURCEDIR);
   await createAngularInjections(coreAssets, coreModules, dependenceModules);
   const copiedFiles = copySourceFiles(allFiles);
   copyComponents(SOURCEDIR, CONSTANTS.BOWER_ORPHANED);
-  const depAwesomeModulesJsFiles = getDependenceModuleSourceJsFilesImports(dependenceModulesRaw);
   await createEntryPoint(vendorAssetsToLink
     .concat(copiedFiles)
     .concat(['./frontend/js/constants.js'])
