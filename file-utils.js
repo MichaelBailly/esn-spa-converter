@@ -12,6 +12,14 @@ module.exports = {
   copyComponents
 }
 
+/**
+ * Creates an angular-common.js file, that exposes angular as a webpack object
+ *
+ * Angular is not exposing it's angular object as a module exports. This wrapper
+ * does it for us. It's associated with webpack.conf.js "angular" rule in the ProvidePlugin
+ *
+ * @param {string} SOURCEDIR the source directory
+ */
 async function createAngularBindingFile(SOURCEDIR) {
   console.log('Creating AngularJS binding file for webpack');
   const fileFullPath = path.resolve(`${SOURCEDIR}`, 'angular-common.js');
@@ -56,6 +64,12 @@ function copyReplacements() {
   });
 }
 
+/**
+ * Copy needed frontend/components modules in the source tree
+ *
+ * @param {string} SOURCEDIR folder that the sources should be copied to
+ * @param {Array} components list of bower frontend/components to copy
+ */
 function copyComponents(SOURCEDIR, components) {
   console.log('Copying all frontend/components files');
   const componentsSrcRoot = path.resolve(__dirname, 'node_modules', 'linagora-rse', 'frontend', 'components');

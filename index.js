@@ -33,6 +33,8 @@ const cssUtils = require('./css-utils');
 const indexHTML = path.resolve(__dirname, 'node_modules/linagora-rse/frontend/views/esn/index.pug');
 const ENTRYPOINT = path.resolve(SOURCEDIR, 'index.js');
 
+run();
+
 async function extractAssetsFromCoreInjections() {
   console.log('Extracting assets from ESN core injections (frontend/js)')
   const result = {
@@ -195,6 +197,11 @@ function cleanSourceDir() {
   mkdirp.sync(SOURCEDIR);
 }
 
+/**
+ * Copy all necessary files from ESN tree
+ *
+ * @param {Array} files list of all files to copy
+ */
 function copySourceFiles(files) {
   const filesBase = 'node_modules/linagora-rse/';
   const allDestinationFiles = [];
@@ -228,6 +235,14 @@ function getDependenceModuleSourceJsFilesImports(dependenceModulesRaw) {
   return filesImportPath;
 }
 
+/**
+ * creates a file angular-injections.js that contains the list of all modules
+ * dependencies, used in angular.module('esnApp', [HERE])
+ *
+ * @param {Array} coreAssets core (ESN/frontend/js/modules) Angular modules
+ * @param {Array} coreModules in-esn modules (ESN/modules)
+ * @param {Array} dependenceModules awesome modules that this SPA depends on
+ */
 async function createAngularInjections(coreAssets, coreModules, dependenceModules) {
   const fileFullPath = path.resolve(`${SOURCEDIR}`, 'angular-injections.js');
   const modules = coreAssets.angularModulesName
@@ -239,6 +254,13 @@ async function createAngularInjections(coreAssets, coreModules, dependenceModule
   return fs.writeFile(fileFullPath, fileContents);
 }
 
+/**
+ * Create a index.js file, that contains all the required js files
+ *
+ * This file is used by webpack as the starting point
+ *
+ * @param {Array} allFiles files to require
+ */
 async function createEntryPoint(allFiles) {
   let entryPointContents = 'import "./frontend/all.less";\n';
   // let counter=1;
@@ -289,17 +311,7 @@ async function analyze() {
   };
 }
 
-async function run() {
-  const {
-    coreAssets,
-    coreModules,
-    dependenceModules,
-    allFiles,
-    vendorAssetsToLink,
-    depAwesomeModulesJsFiles
-  } = await analyze();
-  console.log(allFiles);
-
+async function createJSFiles({ coreAssets, coreModules, dependenceModules, allFiles, vendorAssetsToLink, depAwesomeModulesJsFiles }) {
   cleanSourceDir();
   await createAngularBindingFile(SOURCEDIR);
   await createAngularInjections(coreAssets, coreModules, dependenceModules);
@@ -309,16 +321,22 @@ async function run() {
     .concat(copiedFiles)
     .concat(['./frontend/js/constants.js'])
     .concat(depAwesomeModulesJsFiles));
+}
 
-  // CSS
+function createCssFiles() {
   cssUtils.copyEsnLess();
   cssUtils.copyCoreModulesLess();
   cssUtils.createRootLessFile();
   cssUtils.copyCoreInjectionsFiles();
   cssUtils.duplicateMeterialAdminImages();
-  await copyReplacements();
 }
 
+async function run() {
+  const jsFilesInformation = await analyze();
 
+  await createJSFiles(jsFilesInformation);
+  createCssFiles();
 
-run();
+  // files that should be replaced, no webpack loader able to fix their code
+  await copyReplacements();
+}

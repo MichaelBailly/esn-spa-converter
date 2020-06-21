@@ -15,6 +15,9 @@ module.exports = {
   duplicateMeterialAdminImages
 };
 
+/**
+ * copy all less files in ESN/frontend/js/modules
+ */
 function copyCoreInjectionsFiles() {
   const srcFrontend = path.resolve(ESN_ROOT, 'frontend');
   const destFrontEnd = path.resolve(__dirname, 'src', 'frontend');
@@ -27,6 +30,9 @@ function copyCoreInjectionsFiles() {
   });
 }
 
+/**
+ * copy as less files from ESN/frontend/css
+ */
 function copyEsnLess() {
   console.log('Copying ESN less files');
   const CSS_ROOT = path.resolve(ESN_ROOT, 'frontend', 'css');
@@ -44,6 +50,13 @@ function copyEsnLess() {
   });
 }
 
+/**
+ * copy all less files from code aweosme modules (ESN/modules)
+ *
+ * Modules list is taked from constants.js/coreModules.
+ *
+ * Only modules with a css property are copied.
+ */
 function copyCoreModulesLess() {
   console.log('Copying ESN core modules less files');
   const destModulesRoot = path.resolve(__dirname, 'src', 'modules');
@@ -66,6 +79,16 @@ function copyCoreModulesLess() {
   });
 }
 
+/**
+ * create a frontend/all.less file
+ *
+ * This file links:
+ * - all css files from components (ex bower & npm)
+ * - the ESN/frontend/css/styles.less file
+ * - all core awesomemodules (ESN/modules)
+ *
+ * The link is done using import. Note that this import is less import, not webpack import.
+ */
 function createRootLessFile() {
   console.log('Creating root less file');
   const rootLessFile = path.resolve(__dirname, 'src', 'frontend', 'all.less');
