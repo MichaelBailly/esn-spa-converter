@@ -1,6 +1,7 @@
 const path = require('path');
 const glob = require('glob-all');
 const webpack = require('webpack');
+const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 
 module.exports = {
@@ -9,7 +10,7 @@ module.exports = {
   devtool: "source-map",
   output: {
     filename: 'main.js',
-    path: path.resolve(__dirname, 'dist', 'js'),
+    path: path.resolve(__dirname, 'dist'),
   },
   plugins: [
     new webpack.IgnorePlugin({ resourceRegExp: /codemirror/ }), // for summernote
@@ -22,7 +23,11 @@ module.exports = {
       materialAdmin: path.resolve(__dirname, 'src', 'frontend', 'js', 'material.js'),
       angular: path.resolve(__dirname, 'src', 'angular-common'),
       'window.angularInjections': path.resolve(__dirname, 'src', 'angular-injections.js'),
-    })
+    }),
+    new HtmlWebpackPlugin({
+      template: './assets/index.pug',
+      filename: './index.html'
+    }),
   ],
   devServer: {
     contentBase: path.join(__dirname, 'dist'),
@@ -36,6 +41,14 @@ module.exports = {
   module: {
 
     rules: [
+      {
+        test: /\.pug$/,
+        use: [
+          {
+            loader: 'pug-loader',
+          },
+        ],
+      },
       {
         test: /\.(woff(2)?|ttf|eot|svg)(\?v=\d+\.\d+\.\d+)?$/,
         use: [

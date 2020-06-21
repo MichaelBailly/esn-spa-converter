@@ -42,7 +42,7 @@ css-utils.js
 file-utils.js
 webpack.config.js
 assets/
-  index.html
+  index.pug
 replacements/
   src/
     frontend/
@@ -68,7 +68,7 @@ The webpack configuration file.
 
 ### assets
 
-The files that should be copied as is in the `dist` folder.
+Right now, contains the file used as index.html.
 
 ### repacements
 
