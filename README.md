@@ -2,6 +2,11 @@
 
 This project goal is to provide a tool for the development team, to convert current OpenPaaS frontend, glued in the backend server, to a set of standalone frontend-only SPA.
 
+This is a two-steps process:
+
+* Have a workig SPA through a good configuration of `constants.js` and `webpack.config.js`
+* Remove the tooling that created the SPA and commit
+
 ## Usage
 
 ```
@@ -28,10 +33,12 @@ This script creates the target layout for development, in the `src/` folder.
 
 ### npm run serve
 
-Start webpack-dev-server in watch mode. The assets are created in the `dist/` folder. webpack-dev-server points to this URL.
+Start webpack-dev-server in watch mode.
+
+## Once everything works
 
 Once the system is fully working:
-Delete `dist/` folder, run node index.js a last time, remove all files but `assets/`, `src/`, `dist/` and `webpack.config.js`. Remove `linagora-rse` from the dependencies listed in `package.json`. Commit. The standalone SPA is done.
+Delete all files but `assets/`, `src/` and `webpack.config.js`. Remove `linagora-rse` from the dependencies listed in `package.json`. Commit. The standalone SPA is ready.
 
 ## Layout
 
