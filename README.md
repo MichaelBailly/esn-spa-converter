@@ -81,6 +81,13 @@ Right now, contains the file used as index.html.
 
 Those files are copied in the `src/` folder at the end of the `node index.js` run. They contain fixes in files that really are not compatible with webpack.
 
+## Other usefull commands
+
+```
+npm run build:dev
+```
+build the artefacts in `dist/` folder, with development environment (no minification).
+
 ## TODO
 
 * how to login in real life ?
