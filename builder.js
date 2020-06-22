@@ -251,7 +251,7 @@ function createAngularInjections(coreAssets, coreModules, dependenceModules) {
  * @param {Array} allFiles files to require
  */
 function createEntryPoint(allFiles) {
-  let entryPointContents = 'import "./frontend/all.less";\n';
+  let entryPointContents = 'import "./all.less";\n';
   // let counter=1;
   allFiles.forEach((f) => {
     relativePath = f.replace(SOURCEDIR, '.');

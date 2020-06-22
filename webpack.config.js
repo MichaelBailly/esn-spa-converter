@@ -1,8 +1,21 @@
 const path = require('path');
+const { accessSync } = require('fs');
+const { R_OK } = require('fs').constants;
 const glob = require('glob-all');
 const webpack = require('webpack');
-const HtmlWebpackPlugin = require('html-webpack-plugin')
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
+// default: we are building an SPA
+let angularCommon = path.resolve(__dirname, 'node_modules', 'esn-frontend-common-libs', 'src', 'anguar-common.js');
+let angularInjections = path.resolve(__dirname, 'node_modules', 'esn-frontend-common-libs', 'src', 'anguar-injections.js');
+
+try {
+  accessSync(path.resolve(__dirname, 'node_modules', 'esn-frontend-common-libs', 'src', 'anguar-common.js'));
+} catch (e) {
+  // fallback: we are building the esn-frontend-common-libs
+  angularCommon = path.resolve(__dirname, 'src', 'angular-common');
+  angularInjections = path.resolve(__dirname, 'src', 'angular-injections.js');
+}
 
 module.exports = {
   mode: 'development',
@@ -21,8 +34,8 @@ module.exports = {
       'window.$': 'jquery',
       'Chart': path.resolve(__dirname, 'src', 'frontend', 'components', 'Chart.js/Chart.js'),
       materialAdmin: path.resolve(__dirname, 'src', 'frontend', 'js', 'material.js'),
-      angular: path.resolve(__dirname, 'src', 'angular-common'),
-      'window.angularInjections': path.resolve(__dirname, 'src', 'angular-injections.js'),
+      angular: angularCommon,
+      'window.angularInjections': angularInjections,
     }),
     new HtmlWebpackPlugin({
       template: './assets/index.pug',

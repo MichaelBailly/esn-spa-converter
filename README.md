@@ -65,7 +65,7 @@ This file contains all the configuration to build the ESN standalone SPA:
 * the core awesome modules (located originaly at ESN_ROOT/modules)
 * the dependent awesome modules (located originally at ESN_ROOT/node_modules)
 
-### index.js, file-utils.js, css-utils.js
+### index.js, builder.js, file-utils.js, css-utils.js
 
 Used to build the initial SPA `src/` tree.
 

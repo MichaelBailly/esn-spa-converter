@@ -91,8 +91,8 @@ function copyCoreModulesLess() {
  */
 function createRootLessFile() {
   console.log('Creating root less file');
-  const rootLessFile = path.resolve(__dirname, 'src', 'frontend', 'all.less');
-  const relativeFileRoot = './components/';
+  const rootLessFile = path.resolve(__dirname, 'src', 'all.less');
+  const relativeFileRoot = './frontend/components/';
   let contents = '';
 
   CONSTANTS.EX_BOWER.forEach((bm) => {
@@ -119,7 +119,7 @@ function createRootLessFile() {
   });
 
   // main ESN less file
-  contents += `@import "./css/styles.less";\n`;
+  contents += `@import "./frontend/css/styles.less";\n`;
 
   // ESN core modules
   CONSTANTS.coreModules.forEach((mod) => {
@@ -129,7 +129,7 @@ function createRootLessFile() {
     console.log('include less for module', mod.name);
     const cssList = Array.isArray(mod.cssRoot) ? mod.cssRoot : [mod.cssRoot];
     cssList.forEach((cssFile) => {
-      contents += `@import "../modules/${mod.name}/${cssFile}";\n`;
+      contents += `@import "./modules/${mod.name}/${cssFile}";\n`;
     });
   });
 
