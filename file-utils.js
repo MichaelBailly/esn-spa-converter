@@ -3,12 +3,30 @@ const glob = require('glob-all');
 const mkdirp = require('mkdirp');
 const { writeFileSync, readFileSync } = require('fs');
 const copyFileSync = require('fs').copyFileSync;
+const coreFrontEndInjections = require('./node_modules/linagora-rse/backend/webserver/core-frontend-injections');
 
 module.exports = {
   createAngularBindingFile,
   extractAssetsFromIndexPug,
   copyReplacements,
-  copyComponents
+  copyComponents,
+  extractAssetsFromCoreInjections
+}
+
+function extractAssetsFromCoreInjections() {
+  console.log('Extracting assets from ESN core injections (frontend/js)')
+  const result = {
+    files: [],
+    angularModulesName: []
+  };
+  const wsw = {
+    injectAngularModules(_core, files, angular, innerapps, localJsFiles) {
+      result.files = result.files.concat(localJsFiles.localJsFiles);
+      result.angularModulesName.push(angular);
+    }
+  };
+  coreFrontEndInjections(wsw, ['esn']);
+  return result;
 }
 
 /**

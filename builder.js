@@ -24,9 +24,14 @@ const mkdirp = require('mkdirp');
 const { coreModules, dependenceModules } = require('./constants');
 const CONSTANTS = require('./constants');
 
-const { createAngularBindingFile, extractAssetsFromIndexPug, copyReplacements, copyComponents } = require('./file-utils');
+const {
+  createAngularBindingFile,
+  extractAssetsFromIndexPug,
+  copyReplacements,
+  copyComponents,
+  extractAssetsFromCoreInjections
+} = require('./file-utils');
 
-const coreFrontEndInjections = require('./node_modules/linagora-rse/backend/webserver/core-frontend-injections');
 const cssUtils = require('./css-utils');
 const { writeFileSync } = require('fs');
 
@@ -34,22 +39,6 @@ const indexHTML = path.resolve(__dirname, 'node_modules/linagora-rse/frontend/vi
 const ENTRYPOINT = path.resolve(SOURCEDIR, 'index.js');
 
 module.exports = run;
-
-function extractAssetsFromCoreInjections() {
-  console.log('Extracting assets from ESN core injections (frontend/js)')
-  const result = {
-    files: [],
-    angularModulesName: []
-  };
-  const wsw = {
-    injectAngularModules(_core, files, angular, innerapps, localJsFiles) {
-      result.files = result.files.concat(localJsFiles.localJsFiles);
-      result.angularModulesName.push(angular);
-    }
-  };
-  coreFrontEndInjections(wsw, ['esn']);
-  return result;
-}
 
 function extractAssetFromDependenceModules() {
   const result = [];
