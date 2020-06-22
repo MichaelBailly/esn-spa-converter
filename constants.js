@@ -1,4 +1,7 @@
+const SPA = require('./constants-spa');
+
 module.exports = {
+  spa: SPA,
   EXCLUDE_FROM_COPY: [
     './angular-common.js',
     './angular-injections.js',
@@ -59,15 +62,6 @@ module.exports = {
     'js/modules/attachment/preview/default-preview/default-preview.less'
   ],
   dependenceModules: [
-    {
-      name: 'linagora.esn.dav.import',
-      angularModuleName: 'linagora.esn.dav.import',
-      fileRoot: 'frontend/app',
-      filesGlob: [
-        '**/*.module.js',
-        '**/!(*spec).js'
-      ]
-    },
   ],
   coreModules: [
     {
@@ -84,43 +78,6 @@ module.exports = {
         'directives.js',
         'services.js'
       ]
-    },/*
-    {
-      name: 'linagora.esn.contact',
-      angularModuleName: 'linagora.esn.contact',
-      frontendRoot: 'frontend',
-      cssRoot: 'frontend/app/app.less',
-      fileRoot: 'frontend/app',
-      filesGlob: [*/
-//        `**/*.module.js`,
-//        `**/!(*spec).js`
-      /*]
-    },*/
-    {
-      name: 'linagora.esn.contact.import',
-      angularModuleName: 'linagora.esn.contact.import',
-      fileRoot: 'frontend/js',
-      files: ['app.js', 'constants.js', 'services.js']
-    },
-    {
-      name: 'linagora.esn.controlcenter',
-      angularModuleName: 'linagora.esn.controlcenter',
-      frontendRoot: 'frontend',
-      cssRoot: 'frontend/app/app.less',
-      fileRoot: 'frontend/app',
-      filesGlob: [
-        '**/*.module.js',
-        '**/!(*spec).js'
-      ]
-    },
-    {
-      name: 'linagora.esn.davproxy',
-      angularModuleName: 'linagora.esn.davproxy',
-      fileRoot: 'frontend/js',
-      filesGlob: [
-        '**/*.module.js',
-        '**/!(*spec).js'
-      ]
     },
     {
       name: 'linagora.esn.graceperiod',
@@ -131,32 +88,23 @@ module.exports = {
       filesGlob: [
         '**/!(*spec).js'
       ]
-    },
+    },/*
     {
       name: 'linagora.esn.jobqueue',
       angularModuleName: 'linagora.esn.jobqueue',
       frontendRoot: 'frontend',
       cssRoot: 'frontend/app/app.less',
       fileRoot: 'frontend/app',
-      filesGlob: [
-        '**/*.module.js',
-        '**/!(*spec).js'
-      ]
-    },
+      filesGlob: [*/
+        //'**/*.module.js',
+        //'**/!(*spec).js'
+      /*]
+    },*/
     {
       name: 'linagora.esn.oauth.consumer',
       angularModuleName: 'linagora.esn.oauth.consumer',
       fileRoot: 'frontend/js',
       files: ['app.js', 'services.js']
-    },
-    {
-      name: 'linagora.esn.profile',
-      angularModuleName: 'linagora.esn.profile',
-      fileRoot: 'frontend/app',
-      filesGlob: [
-        '**/*.module.js',
-        '**/!(*spec).js'
-      ]
     },
     {
       name: 'linagora.esn.user.status',
