@@ -1,8 +1,7 @@
-const fs = require('fs').promises;
 const path = require('path');
 const glob = require('glob-all');
 const mkdirp = require('mkdirp');
-const { writeFileSync } = require('fs');
+const { writeFileSync, readFileSync } = require('fs');
 const copyFileSync = require('fs').copyFileSync;
 
 module.exports = {
@@ -20,7 +19,7 @@ module.exports = {
  *
  * @param {string} SOURCEDIR the source directory
  */
-async function createAngularBindingFile(SOURCEDIR) {
+function createAngularBindingFile(SOURCEDIR) {
   console.log('Creating AngularJS binding file for webpack');
   const fileFullPath = path.resolve(`${SOURCEDIR}`, 'angular-common.js');
   const fileContents = `require('angular/angular.js');
@@ -28,14 +27,14 @@ async function createAngularBindingFile(SOURCEDIR) {
 module.exports = window.angular;
 `
 
-  return fs.writeFile(fileFullPath, fileContents);
+  writeFileSync(fileFullPath, fileContents);
 }
 
 
-async function extractAssetsFromIndexPug(indexHTML) {
+function extractAssetsFromIndexPug(indexHTML) {
   console.log('extracting javascript assets from esn/index.pug');
   const staticAssets = [];
-  const indexHTMLContents = await fs.readFile(indexHTML, { encoding: 'utf8' });
+  const indexHTMLContents = readFileSync(indexHTML, { encoding: 'utf8' });
   indexHTMLContents.split('\n').forEach(l => {
     const line = l.trim();
     if (line.startsWith('script(src=') && !line.match(/\$\{/)) {
@@ -43,10 +42,6 @@ async function extractAssetsFromIndexPug(indexHTML) {
       if (fPath === 'js/constants.js') {
         return;
       }
-/*      if (fPath.endsWith('.min.js')) {
-        staticAssets.push(fPath.replace('.min.js', '.js'));
-        return;
-      }*/
       staticAssets.push(fPath);
     }
   });
