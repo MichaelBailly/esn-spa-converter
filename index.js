@@ -19,6 +19,8 @@ Valid names are:
 
 const commandLineArgs = require('command-line-args');
 const builder = require('./builder');
+const SpaBuilder = require('./spa-builder');
+const CONSTANTS = require('./constants');
 
 const VALID_PACKAGES = [
   'common-libs',
@@ -48,6 +50,13 @@ const moduleName = `${PACKAGE_PREFIX}${args.target}`;
 if (args.target === 'common-libs') {
   console.log('Building', moduleName);
   builder();
+} else if (args.target === 'account') {
+  const spaBuilder = new SpaBuilder(CONSTANTS.spa.account);
+  spaBuilder.build();
+} else if (args.target === 'contacts') {
+  const spaBuilder = new SpaBuilder(CONSTANTS.spa.contacts);
+  spaBuilder.build();
+
 } else {
   console.log('Not implemented yet.');
   console.log('Building the source tree of', moduleName, 'is not supported yet.');

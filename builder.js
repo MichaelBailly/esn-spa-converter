@@ -19,7 +19,6 @@ const copyFileSync = require('fs').copyFileSync;
 const accessSync = require('fs').accessSync;
 const ACCESS_READ = require('fs').constants.R_OK;
 const glob = require('glob-all');
-const rimraf = require('rimraf');
 const mkdirp = require('mkdirp');
 const { coreModules, dependenceModules } = require('./constants');
 const CONSTANTS = require('./constants');
@@ -29,7 +28,10 @@ const {
   extractAssetsFromIndexPug,
   copyReplacements,
   copyComponents,
-  extractAssetsFromCoreInjections
+  extractAssetsFromCoreInjections,
+  extractAssetsFromCoreModules,
+  extractAssetFromDependenceModules,
+  cleanSourceDir
 } = require('./file-utils');
 
 const cssUtils = require('./css-utils');
@@ -40,50 +42,7 @@ const ENTRYPOINT = path.resolve(SOURCEDIR, 'index.js');
 
 module.exports = run;
 
-function extractAssetFromDependenceModules() {
-  const result = [];
-  dependenceModules.forEach((mod) => {
-    const modLocalPath = `node_modules/${mod.name}/${mod.fileRoot}`;
-    const tmpResult = extractAssetsFromAwesomeModule(mod, modLocalPath);
-    result.push(tmpResult);
-  });
-  return result;
-}
 
-function extractAssetsFromCoreModules() {
-  const result = {
-    files: [],
-    angularModulesName: []
-  };
-  coreModules.forEach((mod) => {
-    const modLocalPath = `node_modules/linagora-rse/modules/${mod.name}/${mod.fileRoot}`;
-    const tmpResult = extractAssetsFromAwesomeModule(mod, modLocalPath);
-    result.files = result.files.concat(tmpResult.files);
-    result.angularModulesName = result.angularModulesName.concat(tmpResult.angularModulesName);
-  });
-
-  return result;
-}
-
-function extractAssetsFromAwesomeModule(mod, modLocalPath) {
-  const result = {
-    files: [],
-    angularModulesName: [],
-    mod,
-    modLocalPath
-  };
-
-  const mPath = path.resolve(__dirname, modLocalPath);
-
-  if (mod.filesGlob) {
-    const filesGlob = mod.filesGlob.map(f => `${mPath}/${f}`);
-    result.files = result.files.concat(glob.sync(filesGlob));
-  } else {
-    result.files = result.files.concat(mod.files.map(f => `${mPath}/${f}`));
-  }
-  result.angularModulesName.push(mod.angularModuleName);
-  return result;
-}
 
 /**
  * This functino takes all the scripts that have been linked using <script></script> tags,
@@ -181,11 +140,6 @@ function normalizeDependenceModules(m) {
   return m.files.map(f => f.replace(workdir, ''));
 }
 
-function cleanSourceDir() {
-  rimraf.sync(SOURCEDIR);
-  mkdirp.sync(SOURCEDIR);
-}
-
 /**
  * Copy all necessary files from ESN tree
  *
@@ -264,8 +218,8 @@ function createEntryPoint(allFiles) {
 function analyze() {
   const vendorAssetsRaw = extractAssetsFromIndexPug(indexHTML);
   const coreAssetsRaw = extractAssetsFromCoreInjections();
-  const coreModulesRaw = extractAssetsFromCoreModules();
-  const dependenceModulesRaw = extractAssetFromDependenceModules();
+  const coreModulesRaw = extractAssetsFromCoreModules(CONSTANTS.coreModules);
+  const dependenceModulesRaw = extractAssetFromDependenceModules(CONSTANTS.dependenceModules);
   let [vendorAssets, vendorAssetsToLink] = normalizeVendorAssets(vendorAssetsRaw);
   const vendorAssetsToCopy = vendorAssets.filter(a => !a.startsWith('node_modules/linagora-rse/frontend/components/'));
   vendorAssetsToLink = vendorAssetsToLink.concat(
@@ -301,7 +255,7 @@ function analyze() {
 }
 
 function createJSFiles({ coreAssets, coreModules, dependenceModules, allFiles, vendorAssetsToLink, depAwesomeModulesJsFiles }) {
-  cleanSourceDir();
+  cleanSourceDir(SOURCEDIR);
   createAngularBindingFile(SOURCEDIR);
   createAngularInjections(coreAssets, coreModules, dependenceModules);
   const copiedFiles = copySourceFiles(allFiles);

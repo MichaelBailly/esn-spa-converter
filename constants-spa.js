@@ -41,7 +41,16 @@ module.exports = {
         angularModuleName: 'linagora.esn.contact.import',
         fileRoot: 'frontend/js',
         files: ['app.js', 'constants.js', 'services.js']
-      }
+      },
+      {
+        name: 'linagora.esn.davproxy',
+        angularModuleName: 'linagora.esn.davproxy',
+        fileRoot: 'frontend/js',
+        filesGlob: [
+          '**/*.module.js',
+          '**/!(*spec).js'
+        ]
+      },
     ],
     dependenceModules: [
       {

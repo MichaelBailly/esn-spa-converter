@@ -1,6 +1,8 @@
 const path = require('path');
 const glob = require('glob-all');
 const mkdirp = require('mkdirp');
+const rimraf = require('rimraf');
+
 const { writeFileSync, readFileSync } = require('fs');
 const copyFileSync = require('fs').copyFileSync;
 const coreFrontEndInjections = require('./node_modules/linagora-rse/backend/webserver/core-frontend-injections');
@@ -10,7 +12,15 @@ module.exports = {
   extractAssetsFromIndexPug,
   copyReplacements,
   copyComponents,
-  extractAssetsFromCoreInjections
+  extractAssetsFromCoreInjections,
+  cleanSourceDir,
+  extractAssetFromDependenceModules,
+  extractAssetsFromCoreModules
+}
+
+function cleanSourceDir(sourceDir) {
+  rimraf.sync(sourceDir);
+  mkdirp.sync(sourceDir);
 }
 
 function extractAssetsFromCoreInjections() {
@@ -26,6 +36,54 @@ function extractAssetsFromCoreInjections() {
     }
   };
   coreFrontEndInjections(wsw, ['esn']);
+  return result;
+}
+
+function extractAssetFromDependenceModules(dependenceModules) {
+  const result = [];
+  if (!dependenceModules) {
+    return result;
+  }
+  dependenceModules.forEach((mod) => {
+    const modLocalPath = `node_modules/${mod.name}/${mod.fileRoot}`;
+    const tmpResult = extractAssetsFromAwesomeModule(mod, modLocalPath);
+    result.push(tmpResult);
+  });
+  return result;
+}
+
+function extractAssetsFromCoreModules(coreModules) {
+  const result = {
+    files: [],
+    angularModulesName: []
+  };
+  coreModules.forEach((mod) => {
+    const modLocalPath = `node_modules/linagora-rse/modules/${mod.name}/${mod.fileRoot}`;
+    const tmpResult = extractAssetsFromAwesomeModule(mod, modLocalPath);
+    result.files = result.files.concat(tmpResult.files);
+    result.angularModulesName = result.angularModulesName.concat(tmpResult.angularModulesName);
+  });
+
+  return result;
+}
+
+function extractAssetsFromAwesomeModule(mod, modLocalPath) {
+  const result = {
+    files: [],
+    angularModulesName: [],
+    mod,
+    modLocalPath
+  };
+
+  const mPath = path.resolve(__dirname, modLocalPath);
+
+  if (mod.filesGlob) {
+    const filesGlob = mod.filesGlob.map(f => `${mPath}/${f}`);
+    result.files = result.files.concat(glob.sync(filesGlob));
+  } else {
+    result.files = result.files.concat(mod.files.map(f => `${mPath}/${f}`));
+  }
+  result.angularModulesName.push(mod.angularModuleName);
   return result;
 }
 

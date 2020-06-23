@@ -6,15 +6,19 @@ const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 // default: we are building an SPA
-let angularCommon = path.resolve(__dirname, 'node_modules', 'esn-frontend-common-libs', 'src', 'anguar-common.js');
-let angularInjections = path.resolve(__dirname, 'node_modules', 'esn-frontend-common-libs', 'src', 'anguar-injections.js');
+let angularCommon = path.resolve(__dirname, 'node_modules', 'esn-frontend-common-libs', 'src', 'angular-common.js');
+const angularInjections = path.resolve(__dirname, 'src', 'angular-injections.js');
+const chartJs = path.resolve(__dirname, 'node_modules', 'esn-frontend-common-libs', 'src', 'frontend', 'components', 'Chart.js/Chart.js')
+const materialAdmin = path.resolve(__dirname, 'node_modules', 'esn-frontend-common-libs', 'src', 'frontend', 'js', 'material.js')
 
 try {
-  accessSync(path.resolve(__dirname, 'node_modules', 'esn-frontend-common-libs', 'src', 'anguar-common.js'));
+  accessSync(path.resolve(__dirname, 'node_modules', 'esn-frontend-common-libs', 'src', 'angular-common.js'));
 } catch (e) {
   // fallback: we are building the esn-frontend-common-libs
   angularCommon = path.resolve(__dirname, 'src', 'angular-common');
-  angularInjections = path.resolve(__dirname, 'src', 'angular-injections.js');
+  chartJs = path.resolve(__dirname, 'src', 'frontend', 'components', 'Chart.js/Chart.js');
+  materialAdmin = path.resolve(__dirname, 'src', 'frontend', 'js', 'material.js');
+
 }
 
 module.exports = {
@@ -32,10 +36,11 @@ module.exports = {
       $: 'jquery',
       'window.jQuery': 'jquery',
       'window.$': 'jquery',
-      'Chart': path.resolve(__dirname, 'src', 'frontend', 'components', 'Chart.js/Chart.js'),
-      materialAdmin: path.resolve(__dirname, 'src', 'frontend', 'js', 'material.js'),
+      'Chart': chartJs,
+      materialAdmin: materialAdmin,
       angular: angularCommon,
       'window.angularInjections': angularInjections,
+      '../../../../frontend/components/material-admin/less/inc/contacts': '~esn-frontend-common-libs/src/frontend/components/material-admin/less/inc/contacts'
     }),
     new HtmlWebpackPlugin({
       template: './assets/index.pug',
@@ -47,8 +52,24 @@ module.exports = {
     compress: true,
     port: 9900,
     proxy: [{
-      context: ['/auth', '/api', '/views', '/profile/app', '/controlcenter/app', '/images', '/socket.io/', '/user-status/app/bubble/'],
+      context: [
+        '/auth',
+        '/api',
+        '/views',
+        '/profile/app',
+        '/controlcenter/app',
+        '/images',
+        '/socket.io/',
+        '/user-status/app/bubble/',
+        '/contact/app',
+        '/dav/api'
+      ],
       target: 'http://localhost:8080',
+      /*target: 'https://dev.open-paas.org',
+      disableHostCheck: true,
+      secure: false,
+      changeOrigin: true,*/
+
     }]
   },
   module: {
