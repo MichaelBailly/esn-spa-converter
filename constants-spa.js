@@ -1,4 +1,65 @@
 module.exports = {
+  inbox: {
+    coreModules: [],
+    dependenceModules: [
+      {
+        name: 'linagora.esn.unifiedinbox',
+        angularModuleName: 'linagora.esn.unifiedinbox',
+        frontendRoot: 'frontend',
+        cssRoot: 'frontend/app/inbox.less',
+        fileRoot: 'frontend/app',
+        filesGlob: [
+          '**/!(*spec|mailto.config|mailto.constants|mailto|mailto.mocks|mailto.run).js',
+          '!**/mailto/**',
+          '!app.js'
+        ]
+      },
+      {
+        name: 'linagora.esn.james',
+        angularModuleName: 'linagora.esn.james',
+        frontendRoot: 'frontend',
+        fileRoot: 'frontend/app',
+        filesGlob: [
+          '**/*.module.js',
+          '**/!(*spec).js'
+        ]
+      }
+    ],
+    EX_BOWER: [
+      {
+        name: 'sanitize-html',
+        version: 'linagora/sanitize-html#c89d4ebe09da48296f33cc80ddcc02e11d853265',
+        file: [
+          'dist/sanitize-html.js',
+        ],
+        isLinagora: true,
+      },
+      {
+        name: 'angularjs-dragula',
+        version: '2.0.0',
+        file: [
+          'dist/angularjs-dragula.js',
+        ],
+        css: 'dist/dragula.css',
+      },
+      {
+        name: 'jmap-draft-client',
+        in: 'linagora.esn.unifiedinbox',
+        version: 'linagora/jmap-draft-client#0.1.2',
+        file: 'dist/jmap-draft-client.js',
+        isLinagora: true,
+      },
+      { // needed by linagora.esn.james
+        name: 'ui-select',
+        version: '0.19.8',
+        file: [
+          'dist/select.js',
+        ],
+        css: 'dist/select.css',
+      },
+    ],
+    BOWER_ORPHANED: []
+  },
   account: {
     coreModules: [
       {

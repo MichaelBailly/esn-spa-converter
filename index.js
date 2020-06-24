@@ -53,6 +53,9 @@ if (args.target === 'common-libs') {
 } else if (args.target === 'account') {
   const spaBuilder = new SpaBuilder(CONSTANTS.spa.account);
   spaBuilder.build();
+} else if (args.target === 'inbox') {
+  const spaBuilder = new SpaBuilder(CONSTANTS.spa.inbox);
+  spaBuilder.build();
 } else if (args.target === 'contacts') {
   const spaBuilder = new SpaBuilder(CONSTANTS.spa.contacts);
   spaBuilder.build();
