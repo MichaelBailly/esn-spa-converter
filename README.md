@@ -9,12 +9,13 @@ This is a two-steps process:
 
 ## Usage
 
-```
+```sh
 npm install
 node index.js
 mkdir -p node_modules/esn-frontend-common-libs
 cp -a src node_modules/esn-frontend-common-libs
 node index.js -t contacts
+# or node index.js -t inbox
 npm run serve
 ```
 
