@@ -32,7 +32,8 @@ const {
   extractAssetsFromCoreModules,
   extractAssetFromDependenceModules,
   cleanSourceDir,
-  copyCoreModules
+  copyCoreModules,
+  createCoreModulesRequireFiles
 } = require('./file-utils');
 
 const cssUtils = require('./css-utils');
@@ -262,6 +263,7 @@ function createJSFiles({ coreAssets, coreModules, dependenceModules, allFiles, v
   const copiedFiles = copySourceFiles(allFiles);
   copyComponents(SOURCEDIR, CONSTANTS.BOWER_ORPHANED);
   copyCoreModules(__dirname, SOURCEDIR, CONSTANTS.coreModules);
+  createCoreModulesRequireFiles(SOURCEDIR,CONSTANTS.coreModules);
   createEntryPoint(vendorAssetsToLink
     .concat(copiedFiles)
     .concat(coreModules.files.map(f => f.replace('node_modules/linagora-rse', '.')))

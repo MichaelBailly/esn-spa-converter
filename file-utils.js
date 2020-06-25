@@ -17,7 +17,8 @@ module.exports = {
   cleanSourceDir,
   extractAssetFromDependenceModules,
   extractAssetsFromCoreModules,
-  copyCoreModules
+  copyCoreModules,
+  createCoreModulesRequireFiles
 }
 
 function copyCoreModules(rootDir, sourceDir, coreModules) {
@@ -26,6 +27,16 @@ function copyCoreModules(rootDir, sourceDir, coreModules) {
     const dstdir = path.resolve(sourceDir, 'modules', mod.name, 'frontend');
     mkdirp.sync(dstdir);
     copyDir.sync(srcdir, dstdir);
+  });
+}
+
+function createCoreModulesRequireFiles(sourceDir, coreModules) {
+  coreModules.forEach((mod) => {
+    console.log('js files to link:');
+    const modRoot = path.resolve(sourceDir, 'modules', mod.name);
+    const assets = extractAssetsFromAwesomeModule(mod, modRoot);
+    console.log(assets.files);
+    console.log('angular modules:', assets.angularModulesName);
   });
 }
 
