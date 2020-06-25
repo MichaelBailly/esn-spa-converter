@@ -6,6 +6,7 @@ const rimraf = require('rimraf');
 const { writeFileSync, readFileSync } = require('fs');
 const copyFileSync = require('fs').copyFileSync;
 const coreFrontEndInjections = require('./node_modules/linagora-rse/backend/webserver/core-frontend-injections');
+const copyDir = require('copy-dir');
 
 module.exports = {
   createAngularBindingFile,
@@ -15,7 +16,17 @@ module.exports = {
   extractAssetsFromCoreInjections,
   cleanSourceDir,
   extractAssetFromDependenceModules,
-  extractAssetsFromCoreModules
+  extractAssetsFromCoreModules,
+  copyCoreModules
+}
+
+function copyCoreModules(rootDir, sourceDir, coreModules) {
+  coreModules.forEach((mod) => {
+    const srcdir = path.resolve(rootDir, 'node_modules', 'linagora-rse', 'modules', mod.name, 'frontend');
+    const dstdir = path.resolve(sourceDir, 'modules', mod.name, 'frontend');
+    mkdirp.sync(dstdir);
+    copyDir.sync(srcdir, dstdir);
+  });
 }
 
 function cleanSourceDir(sourceDir) {

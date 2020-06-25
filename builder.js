@@ -31,11 +31,13 @@ const {
   extractAssetsFromCoreInjections,
   extractAssetsFromCoreModules,
   extractAssetFromDependenceModules,
-  cleanSourceDir
+  cleanSourceDir,
+  copyCoreModules
 } = require('./file-utils');
 
 const cssUtils = require('./css-utils');
 const { writeFileSync } = require('fs');
+const { copyCoreModulesLess } = require('./css-utils');
 
 const indexHTML = path.resolve(__dirname, 'node_modules/linagora-rse/frontend/views/esn/index.pug');
 const ENTRYPOINT = path.resolve(SOURCEDIR, 'index.js');
@@ -241,8 +243,7 @@ function analyze() {
 
   const allFiles = ['./angular-common.js', './angular-injections.js']
     .concat(vendorAssetsToCopy)
-    .concat(coreAssets.files)
-    .concat(coreModules.files);
+    .concat(coreAssets.files);
 
   return {
     coreAssets,
@@ -260,8 +261,10 @@ function createJSFiles({ coreAssets, coreModules, dependenceModules, allFiles, v
   createAngularInjections(coreAssets, coreModules, dependenceModules);
   const copiedFiles = copySourceFiles(allFiles);
   copyComponents(SOURCEDIR, CONSTANTS.BOWER_ORPHANED);
+  copyCoreModules(__dirname, SOURCEDIR, CONSTANTS.coreModules);
   createEntryPoint(vendorAssetsToLink
     .concat(copiedFiles)
+    .concat(coreModules.files.map(f => f.replace('node_modules/linagora-rse', '.')))
     .concat(['./frontend/js/constants.js'])
     .concat(depAwesomeModulesJsFiles));
 }
