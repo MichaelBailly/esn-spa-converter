@@ -61,8 +61,23 @@ module.exports = {
     'js/modules/attachment/preview/image-preview/image-preview.less',
     'js/modules/attachment/preview/default-preview/default-preview.less'
   ],
+  /*
+    the list of awesomeModules (linagora.esn.*) that are required but are distributed through NPM.
+    Example: linagora.esn.linshare
+
+    Those modules JS & less files are linked (in src/index.js) for inclusion by webpack, and
+    the sources stay in nodemodules/[module name]
+  */
   dependenceModules: [
   ],
+
+  /*
+    the list of core awesomeModules (ESNROOT/modules/linagora.esn.*) that are required
+    Example: linagora.esn.account
+
+    Those modules JS & less files are linked (in src/index.js) for inclusion by webpack, and
+    they are copied (all the "frontend" directory) in src/modules/[module name]
+  */
   coreModules: [
     {
       name: 'linagora.esn.account',
