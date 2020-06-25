@@ -1,4 +1,42 @@
 module.exports = {
+  calendar: {
+    coreModules: [],
+    dependenceModules: [
+      {
+        name: 'linagora.esn.calendar',
+        angularModuleName: 'esn.calendar',
+        frontendRoot: 'frontend/app',
+        cssRoot: 'frontend/app/styles.less',
+        fileRoot: 'frontend/app',
+        filesGlob: [
+          'app/app.js',
+          '**/!(*spec).js'
+        ]
+      },
+      {
+        name: 'linagora.esn.resource',
+        angularModuleName: 'linagora.esn.resource',
+        frontendRoot: 'frontend/app',
+        cssRoot: 'frontend/app/resource.less',
+        fileRoot: 'frontend/app',
+        filesGlob: [
+          'app/app.js',
+          '**/!(*spec).js'
+        ]
+      },
+    ],
+    EX_BOWER: [
+      {
+        name: 'fullcalendar',
+        version: '3.9.0',
+        file: [
+          'dist/fullcalendar.js',
+          'dist/locale-all.js',
+        ],
+        css: 'dist/fullcalendar.css',
+      }
+    ]
+  },
   inbox: {
     coreModules: [],
     dependenceModules: [

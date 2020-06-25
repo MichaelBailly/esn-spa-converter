@@ -60,6 +60,10 @@ if (args.target === 'common-libs') {
   const spaBuilder = new SpaBuilder(CONSTANTS.spa.contacts);
   spaBuilder.build();
 
+} else if (args.target === 'calendar') {
+  const spaBuilder = new SpaBuilder(CONSTANTS.spa.calendar);
+  spaBuilder.build();
+
 } else {
   console.log('Not implemented yet.');
   console.log('Building the source tree of', moduleName, 'is not supported yet.');

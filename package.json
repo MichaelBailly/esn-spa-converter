@@ -46,6 +46,7 @@
     "clipboard": "1.5.16",
     "dompurify": "1.0.9",
     "email-addresses": "3.0.0",
+    "fullcalendar": "3.9.0",
     "iframe-resizer": "3.5.5",
     "jmap-draft-client": "^0.1.2",
     "jquery": "2.1.1",

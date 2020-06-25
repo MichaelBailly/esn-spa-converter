@@ -42,7 +42,8 @@ module.exports = {
       'window.angularInjections': angularInjections,
       angularDragula: 'angularjs-dragula/angularjs-dragula.js', // for unifiedinbox
       sanitizeHtml: 'sanitize-html', // for unifiedinbox
-      DOMPurify: 'dompurify'
+      DOMPurify: 'dompurify', // for unifiedinbox
+      localforage: 'localforage', // for calendar
     }),
     new HtmlWebpackPlugin({
       template: './assets/index.pug',
@@ -69,13 +70,14 @@ module.exports = {
         '/unifiedinbox/views',
         '/unifiedinbox/app',
         '/unifiedinbox/api',
+        '/calendar/app',
       ],
-      //target: 'http://localhost:8080',
-      target: 'https://dev.open-paas.org',
+      target: 'http://localhost:8080',
+      /*target: 'https://dev.open-paas.org',
       disableHostCheck: true,
       secure: false,
       changeOrigin: true,
-
+*/
     }]
   },
   module: {
@@ -151,6 +153,18 @@ module.exports = {
         loader: 'expose-loader',
         options: {
           exposes: 'Autolinker',
+        },
+      },
+      /*
+      for angular-jstz in esn-frontend-common-libs
+      */
+      {
+        test: require.resolve('esn-frontend-common-libs/src/frontend/components/jstzdetect/jstz.js'),
+        loader: 'expose-loader',
+        options: {
+          exposes: [
+            "jstz"
+          ],
         },
       },
       /*

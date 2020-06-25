@@ -456,7 +456,13 @@ module.exports = {
     {
       name: 'moment',
       version: '2.15.1',
-      file: 'moment.js',
+      file: [
+        'moment.js',
+        'locale/fr.js',
+        'locale/ru.js',
+        'locale/vi.js',
+        'locale/zh-cn.js'
+      ],
     },
     {
       name: 'ng-tags-input',
