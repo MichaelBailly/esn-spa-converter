@@ -4,6 +4,7 @@ const mkdirp = require('mkdirp');
 const glob = require('glob-all');
 const copyDir = require('copy-dir');
 const replace = require('replace-in-file');
+const CommonLibsBuilder = require('./common-libs-builder');
 
 const {
   cleanSourceDir,
@@ -15,9 +16,9 @@ const { dependenceModules } = require('./constants');
 class SpaBuilder {
   constructor(spa) {
     this.spa = spa;
-
     this.SOURCEDIR = path.resolve(__dirname, 'src');
     this.dirname = __dirname;
+    this.commonLibsBuilder = new CommonLibsBuilder(this.SOURCEDIR);
     this.esnPath = 'node_modules/linagora-rse';
     this.dependantModulesBase = path.resolve(this.dirname, 'node_modules');
     this.bowerOrphanedRoot = path.resolve(this.SOURCEDIR, 'components');
@@ -37,8 +38,11 @@ class SpaBuilder {
     this.createAngularInjectionsFile(allAwesomeModuleAngularModuleNames);
     this.createLessFile(allAwesomeModulesLessEntries);
     this.createIndexJsFile(allAwesomeModulesJsFiles);
-    //console.log(coreModulesData);
-    //console.log(depedentModulesData);
+    this.createModuleMetaFile(coreModulesData, depedentModulesData);
+  }
+
+  createModuleMetaFile() {
+    fs.writeFileSync(path.resolve(this.SOURCEDIR, 'module-info.json'), JSON.stringify(this.spa, null, 2));
   }
 
   fixLessImports() {
@@ -64,6 +68,7 @@ class SpaBuilder {
     fileContents += this.getBowerOrphanedJavaScript();
 
     fileContents += '\nrequire(\'esn-frontend-common-libs/src/index.js\');\n\n';
+    fileContents += '\nrequire(\'./require-angular-injections.js\');\n\n';
     allAwesomeModulesJsFiles.forEach((file) => {
       fileContents += `require ('./${file}');\n`;
     });
@@ -87,8 +92,8 @@ class SpaBuilder {
   }
 
   createAngularInjectionsFile(allAwesomeModuleAngularModuleNames) {
-    const file = path.resolve(this.SOURCEDIR, 'angular-injections.js');
-    let fileContents = 'const injections = require(\'esn-frontend-common-libs/src/angular-injections.js\');\n\n';
+    const file = path.resolve(this.SOURCEDIR, 'require-angular-injections.js');
+    let fileContents = 'const injections = require(\'esn-frontend-common-libs/src/require-angular-injections.js\');\n\n';
     allAwesomeModuleAngularModuleNames.forEach(name => {
       fileContents += `injections.push("${name}");\n`;
     });
@@ -108,7 +113,6 @@ class SpaBuilder {
       const css = Array.isArray(mod.cssRoot) ? mod.cssRoot : [mod.cssRoot];
       css.forEach(f => result.push(f.replace('frontend/', `${mod.name}/`)));
     });
-    console.log('less returns', result);
     return result;
   }
 
@@ -133,6 +137,7 @@ class SpaBuilder {
 
   copyAwesomeModulesFrontend(coreModules, dependenceModules) {
     coreModules.forEach((mod) => {
+      console.log('copy', mod.name);
       const srcPath = path.resolve(this.dirname, this.esnPath, 'modules', mod.name, 'frontend');
       const destPath = path.resolve(this.SOURCEDIR, mod.name);
       copyDir.sync(srcPath, destPath);
@@ -149,14 +154,7 @@ class SpaBuilder {
   }
 
   getAngularModuleNames(coreModulesData, depedentModulesData) {
-    let result = [...coreModulesData.angularModulesName];
-    if (depedentModulesData) {
-      result = result.concat(
-        depedentModulesData.map(m => m.angularModulesName).reduce((acc, val) => acc.concat(val), []) // this is ".flatten"
-      );
-    }
-
-    return result;
+    return this.commonLibsBuilder.getAngularModuleNames(coreModulesData, depedentModulesData);
   }
 
   getNpmModulesJavaScript() {

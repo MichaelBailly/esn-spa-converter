@@ -32,11 +32,17 @@ function copyCoreModules(rootDir, sourceDir, coreModules) {
 
 function createCoreModulesRequireFiles(sourceDir, coreModules) {
   coreModules.forEach((mod) => {
-    console.log('js files to link:');
     const modRoot = path.resolve(sourceDir, 'modules', mod.name);
-    const assets = extractAssetsFromAwesomeModule(mod, modRoot);
-    console.log(assets.files);
-    console.log('angular modules:', assets.angularModulesName);
+    const fileRoot = path.resolve(modRoot, mod.fileRoot);
+    const assets = extractAssetsFromAwesomeModule(mod, fileRoot);
+
+    let fileContents = 'require(\'../../frontend/index.js\');\n';
+    fileContents += 'require(\'./require-angular-injections.js\');\n';
+    assets.files.map(f => f.replace(modRoot, '.')).forEach((f) => {
+      fileContents += `require('${f}');\n`;
+    });
+    filePath = path.resolve(modRoot, 'index.js');
+    writeFileSync(filePath, fileContents);
   });
 }
 
@@ -60,7 +66,6 @@ function extractAssetsFromCoreInjections() {
   coreFrontEndInjections(wsw, ['esn']);
   return result;
 }
-
 function extractAssetFromDependenceModules(dependenceModules) {
   const result = [];
   if (!dependenceModules) {
@@ -183,9 +188,4 @@ function copyComponents(SOURCEDIR, components) {
     mkdirp.sync(path.dirname(fDest));
     copyFileSync(file, fDest);
   });
-}
-
-function copyIndex() {
-  console.log('Copy index.html file');
-  writeFileSync('./assets/index.html', './dist/index.html');
 }

@@ -22,6 +22,7 @@ const glob = require('glob-all');
 const mkdirp = require('mkdirp');
 const { coreModules, dependenceModules } = require('./constants');
 const CONSTANTS = require('./constants');
+const CommonLibsBuilder = require('./common-libs-builder');
 
 const {
   createAngularBindingFile,
@@ -30,7 +31,6 @@ const {
   copyComponents,
   extractAssetsFromCoreInjections,
   extractAssetsFromCoreModules,
-  extractAssetFromDependenceModules,
   cleanSourceDir,
   copyCoreModules,
   createCoreModulesRequireFiles
@@ -42,6 +42,7 @@ const { copyCoreModulesLess } = require('./css-utils');
 
 const indexHTML = path.resolve(__dirname, 'node_modules/linagora-rse/frontend/views/esn/index.pug');
 const ENTRYPOINT = path.resolve(SOURCEDIR, 'index.js');
+const commonLibsBuilder = new CommonLibsBuilder(SOURCEDIR);
 
 module.exports = run;
 
@@ -137,12 +138,6 @@ function normalizeCoreModules(files) {
   return files.map(f => f.replace(workdir, ''));
 }
 
-function normalizeDependenceModules(m) {
-  const workdir = `${__dirname}/`;
-
-  return m.files.map(f => f.replace(workdir, ''));
-}
-
 /**
  * Copy all necessary files from ESN tree
  *
@@ -168,18 +163,6 @@ function copySourceFiles(files) {
   return allDestinationFiles;
 }
 
-function getDependenceModuleSourceJsFilesImports(dependenceModulesRaw) {
-  const filesImportPath = [];
-  dependenceModulesRaw.forEach((m) => {
-    const basePath = path.resolve(__dirname, 'node_modules') + '/';
-    m.files.forEach((f) => {
-      filesImportPath.push(
-        f.replace(basePath, '')
-      );
-    });
-  });
-  return filesImportPath;
-}
 
 /**
  * creates a file angular-injections.js that contains the list of all modules
@@ -189,14 +172,46 @@ function getDependenceModuleSourceJsFilesImports(dependenceModulesRaw) {
  * @param {Array} coreModules in-esn modules (ESN/modules)
  * @param {Array} dependenceModules awesome modules that this SPA depends on
  */
-function createAngularInjections(coreAssets, coreModules, dependenceModules) {
-  const fileFullPath = path.resolve(`${SOURCEDIR}`, 'angular-injections.js');
+function createAngularInjections(coreAssets, coreModules) {
+  /*const fileFullPath = path.resolve(`${SOURCEDIR}`, 'angular-injections.js');
   const modules = coreAssets.angularModulesName
     .concat(coreModules.angularModulesName)
     .concat(dependenceModules.angularModulesName);
 
   const fileContents = `module.exports = ${JSON.stringify(modules)};`;
 
+  writeFileSync(fileFullPath, fileContents);
+  */
+
+}
+
+function createAllRequireModulesAngularInjections(coreModules) {
+  const fileFullPath = path.resolve(`${SOURCEDIR}`, 'require-angular-injections.js');
+  console.log('creating ', fileFullPath);
+  let fileContents = `const injections = require('./frontend/require-angular-injections.js')\n`;
+  coreModules.forEach((mod) => {
+    modFilePath = `./modules/${mod.name}/require-angular-injections.js`;
+    fileContents += `require('${modFilePath}');\n\n`;
+  });
+  fileContents += `module.exports = injections;\n`;
+  writeFileSync(fileFullPath, fileContents);
+}
+
+function createAngularCoreModulesInjections(coreModules) {
+  coreModules.forEach((mod) => {
+    console.log('angular-injections file for', mod.name);
+    const injection = [ mod.angularModuleName ];
+    const filePath = `modules/${mod.name}/require-angular-injections.js`;
+    const requireRoot = '../../frontend/require-angular-injections.js';
+    commonLibsBuilder.createAngularInjectionsFile(injection, { filePath, requireRoot });
+  });
+
+
+}
+
+function createAngularCoreAssetsInjections(coreAssets) {
+  const fileFullPath = path.resolve(`${SOURCEDIR}`, 'frontend', 'require-angular-injections.js');
+  const fileContents = `module.exports = ${JSON.stringify(coreAssets.angularModulesName)};\n`;
   writeFileSync(fileFullPath, fileContents);
 }
 
@@ -208,7 +223,7 @@ function createAngularInjections(coreAssets, coreModules, dependenceModules) {
  * @param {Array} allFiles files to require
  */
 function createEntryPoint(allFiles) {
-  let entryPointContents = 'import "./all.less";\n';
+  let entryPointContents = 'require("./all.less");\n';
   // let counter=1;
   allFiles.forEach((f) => {
     relativePath = f.replace(SOURCEDIR, '.');
@@ -218,11 +233,24 @@ function createEntryPoint(allFiles) {
   writeFileSync(ENTRYPOINT, entryPointContents);
 }
 
+function createFrontendEntreyPoint(allFiles) {
+  let entryPointContents = '';
+  // let counter=1;
+  allFiles.forEach((f) => {
+    let relativePath = f.replace(SOURCEDIR, '.');
+    if (relativePath.startsWith('./frontend/')) {
+      relativePath = './' + relativePath.substr(11);
+    }
+    entryPointContents += `require('${relativePath}');\n`;
+
+  });
+  writeFileSync(path.resolve(SOURCEDIR, 'frontend', 'index.js'), entryPointContents);
+}
+
 function analyze() {
   const vendorAssetsRaw = extractAssetsFromIndexPug(indexHTML);
   const coreAssetsRaw = extractAssetsFromCoreInjections();
   const coreModulesRaw = extractAssetsFromCoreModules(CONSTANTS.coreModules);
-  const dependenceModulesRaw = extractAssetFromDependenceModules(CONSTANTS.dependenceModules);
   let [vendorAssets, vendorAssetsToLink] = normalizeVendorAssets(vendorAssetsRaw);
   const vendorAssetsToCopy = vendorAssets.filter(a => !a.startsWith('node_modules/linagora-rse/frontend/components/'));
   vendorAssetsToLink = vendorAssetsToLink.concat(
@@ -236,39 +264,46 @@ function analyze() {
     angularModulesName: coreModulesRaw.angularModulesName,
     files: normalizeCoreModules(coreModulesRaw.files)
   };
-  const dependenceModules = {
-    angularModulesName: dependenceModulesRaw.map(m => m.angularModulesName).reduce((acc, val) => acc.concat(val), []),
-    files: dependenceModulesRaw.map(m => normalizeDependenceModules(m)).reduce((acc, val) => acc.concat(val), [])
-  };
-  const depAwesomeModulesJsFiles = getDependenceModuleSourceJsFilesImports(dependenceModulesRaw);
 
-  const allFiles = ['./angular-common.js', './angular-injections.js']
-    .concat(vendorAssetsToCopy)
-    .concat(coreAssets.files);
+  const allFiles = vendorAssetsToCopy.concat(coreAssets.files);
 
   return {
     coreAssets,
     coreModules,
-    dependenceModules,
     vendorAssetsToLink,
-    depAwesomeModulesJsFiles,
     allFiles
   };
 }
 
-function createJSFiles({ coreAssets, coreModules, dependenceModules, allFiles, vendorAssetsToLink, depAwesomeModulesJsFiles }) {
+function createJSFiles({ coreAssets, coreModules, allFiles, vendorAssetsToLink }) {
   cleanSourceDir(SOURCEDIR);
   createAngularBindingFile(SOURCEDIR);
-  createAngularInjections(coreAssets, coreModules, dependenceModules);
   const copiedFiles = copySourceFiles(allFiles);
   copyComponents(SOURCEDIR, CONSTANTS.BOWER_ORPHANED);
   copyCoreModules(__dirname, SOURCEDIR, CONSTANTS.coreModules);
-  createCoreModulesRequireFiles(SOURCEDIR,CONSTANTS.coreModules);
-  createEntryPoint(vendorAssetsToLink
-    .concat(copiedFiles)
-    .concat(coreModules.files.map(f => f.replace('node_modules/linagora-rse', '.')))
+
+
+  // create src/frontend/require-angular-injections.js
+  createAngularCoreAssetsInjections(coreAssets);
+
+  // create src/modules/MOD_NAME/require-angular-injections.js
+  createAngularCoreModulesInjections(CONSTANTS.coreModules);
+
+  // create src/require-angular-injections.js
+  createAllRequireModulesAngularInjections(CONSTANTS.coreModules);
+
+  // create src/frontend/index.js
+  createFrontendEntreyPoint(vendorAssetsToLink.concat(copiedFiles));
+
+  // create src/modules/MOD_NAME/index.js
+  createCoreModulesRequireFiles(SOURCEDIR, CONSTANTS.coreModules);
+
+  // creates src/index.js
+  createEntryPoint(['./frontend/index.js']
+    .concat(['./angular-common.js', './require-angular-injections.js'])
+    .concat(CONSTANTS.coreModules.map(m => `./modules/${m.name}/index.js`))
     .concat(['./frontend/js/constants.js'])
-    .concat(depAwesomeModulesJsFiles));
+  );
 }
 
 function createCssFiles() {

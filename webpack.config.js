@@ -7,7 +7,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 // default: we are building an SPA
 let angularCommon = path.resolve(__dirname, 'node_modules', 'esn-frontend-common-libs', 'src', 'angular-common.js');
-const angularInjections = path.resolve(__dirname, 'src', 'angular-injections.js');
+const angularInjections = path.resolve(__dirname, 'src', 'require-angular-injections.js');
 let chartJs = path.resolve(__dirname, 'node_modules', 'esn-frontend-common-libs', 'src', 'frontend', 'components', 'Chart.js/Chart.js')
 let materialAdmin = path.resolve(__dirname, 'node_modules', 'esn-frontend-common-libs', 'src', 'frontend', 'js', 'material.js')
 
@@ -59,6 +59,7 @@ module.exports = {
         '/auth',
         '/api',
         '/views',
+        '/account/api',
         '/profile/app',
         '/controlcenter/app',
         '/images',
@@ -66,6 +67,7 @@ module.exports = {
         '/user-status/app/bubble/',
         '/user-status/api',
         '/contact/app',
+        '/contact/images',
         '/dav/api',
         '/unifiedinbox/views',
         '/unifiedinbox/app',
