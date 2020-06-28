@@ -20,6 +20,7 @@ const accessSync = require('fs').accessSync;
 const ACCESS_READ = require('fs').constants.R_OK;
 const glob = require('glob-all');
 const mkdirp = require('mkdirp');
+
 const { coreModules, dependenceModules } = require('./constants');
 const CONSTANTS = require('./constants');
 const CommonLibsBuilder = require('./common-libs-builder');
@@ -33,12 +34,13 @@ const {
   extractAssetsFromCoreModules,
   cleanSourceDir,
   copyCoreModules,
-  createCoreModulesRequireFiles
+  createCoreModulesRequireFiles,
+  copyCoreAssetViews,
+  resolveTemplateFromNgTemplateUrl
 } = require('./file-utils');
 
 const cssUtils = require('./css-utils');
-const { writeFileSync } = require('fs');
-const { copyCoreModulesLess } = require('./css-utils');
+const { writeFileSync, readFileSync } = require('fs');
 
 const indexHTML = path.resolve(__dirname, 'node_modules/linagora-rse/frontend/views/esn/index.pug');
 const ENTRYPOINT = path.resolve(SOURCEDIR, 'index.js');
@@ -247,6 +249,39 @@ function createFrontendEntreyPoint(allFiles) {
   writeFileSync(path.resolve(SOURCEDIR, 'frontend', 'index.js'), entryPointContents);
 }
 
+
+
+function fixAngularTemplateImports() {
+  const allJsFiles = glob.sync([
+    `${path.resolve(SOURCEDIR, 'frontend', 'js')}/**/*.js`,
+    `!${path.resolve(SOURCEDIR, 'frontend', 'js')}/modules/timeline/timeline-entry-displayer.component.js`
+  ]);
+  const mappings = [{
+    from: '/views/',
+    to: path.resolve(SOURCEDIR, 'frontend', 'views')
+  },
+    {
+      from: '/views/',
+      to: path.resolve(SOURCEDIR, 'frontend', 'js')
+    }
+  ];
+  allJsFiles.forEach((f) => {
+    let fileContents = readFileSync(f, 'utf8');
+    fileContents = fileContents.replace(/(templateUrl:\s+'([^']+)')/g, function(match, p1, p2) {
+      const pugFile = resolveTemplateFromNgTemplateUrl(p2, mappings);
+      let relativePath = path.relative(path.dirname(f), path.dirname(pugFile));
+      if (relativePath.length && !relativePath.startsWith('.')) {
+        relativePath = `./${relativePath}`;
+      } else if (!relativePath.length) {
+        relativePath = './';
+      }
+      const back = `template: require("${relativePath}/${path.basename(pugFile)}")`;
+      return back;
+    });
+    writeFileSync(f, fileContents);
+  });
+}
+
 function analyze() {
   const vendorAssetsRaw = extractAssetsFromIndexPug(indexHTML);
   const coreAssetsRaw = extractAssetsFromCoreInjections();
@@ -297,6 +332,10 @@ function createJSFiles({ coreAssets, coreModules, allFiles, vendorAssetsToLink }
 
   // create src/modules/MOD_NAME/index.js
   createCoreModulesRequireFiles(SOURCEDIR, CONSTANTS.coreModules);
+
+  copyCoreAssetViews(__dirname, SOURCEDIR);
+
+  fixAngularTemplateImports();
 
   // creates src/index.js
   createEntryPoint(['./frontend/index.js']

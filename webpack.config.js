@@ -6,20 +6,27 @@ const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 // default: we are building an SPA
+let commonLibsPath = path.resolve(__dirname, 'node_modules', 'esn-frontend-common-libs');
 let angularCommon = path.resolve(__dirname, 'node_modules', 'esn-frontend-common-libs', 'src', 'angular-common.js');
 const angularInjections = path.resolve(__dirname, 'src', 'require-angular-injections.js');
 let chartJs = path.resolve(__dirname, 'node_modules', 'esn-frontend-common-libs', 'src', 'frontend', 'components', 'Chart.js/Chart.js')
-let materialAdmin = path.resolve(__dirname, 'node_modules', 'esn-frontend-common-libs', 'src', 'frontend', 'js', 'material.js')
+let materialAdmin = path.resolve(__dirname, 'node_modules', 'esn-frontend-common-libs', 'src', 'frontend', 'js', 'material.js');
+let pugLoaderOptions = {
+  root: `${__dirname}/node_modules/esn-frontend-common-libs/src/frontend/views`
+};
 
 try {
   accessSync(path.resolve(__dirname, 'node_modules', 'esn-frontend-common-libs', 'src', 'angular-common.js'));
 } catch (e) {
   // fallback: we are building the esn-frontend-common-libs
+  commonLibsPath = path.resolve(__dirname);
   angularCommon = path.resolve(__dirname, 'src', 'angular-common');
   chartJs = path.resolve(__dirname, 'src', 'frontend', 'components', 'Chart.js/Chart.js');
   materialAdmin = path.resolve(__dirname, 'src', 'frontend', 'js', 'material.js');
-
+  pugLoaderOptions = {};
 }
+
+console.log('esn-frontend-common-libs path', commonLibsPath);
 
 module.exports = {
   mode: 'development',
@@ -28,6 +35,11 @@ module.exports = {
   output: {
     filename: 'main.js',
     path: path.resolve(__dirname, 'dist'),
+  },
+  resolve: {
+    alias: {
+      'esn-frontend-common-libs': commonLibsPath,
+    },
   },
   plugins: [
     new webpack.IgnorePlugin({ resourceRegExp: /codemirror/ }), // for summernote
@@ -73,13 +85,14 @@ module.exports = {
         '/unifiedinbox/app',
         '/unifiedinbox/api',
         '/calendar/app',
+        '/linagora.esn.resource/api'
       ],
-      target: 'http://localhost:8080',
-      /*target: 'https://dev.open-paas.org',
+      //target: 'http://localhost:8080',
+      target: 'https://dev.open-paas.org',
       disableHostCheck: true,
       secure: false,
       changeOrigin: true,
-*/
+
     }]
   },
   module: {
@@ -151,7 +164,7 @@ module.exports = {
 
       */
       {
-        test: require.resolve('esn-frontend-common-libs/src/frontend/components/Autolinker.js/dist/Autolinker.js'),
+        test: require.resolve(commonLibsPath + '/src/frontend/components/Autolinker.js/dist/Autolinker.js'),
         loader: 'expose-loader',
         options: {
           exposes: 'Autolinker',
@@ -161,7 +174,7 @@ module.exports = {
       for angular-jstz in esn-frontend-common-libs
       */
       {
-        test: require.resolve('esn-frontend-common-libs/src/frontend/components/jstzdetect/jstz.js'),
+        test: require.resolve(commonLibsPath + '/src/frontend/components/jstzdetect/jstz.js'),
         loader: 'expose-loader',
         options: {
           exposes: [
@@ -181,14 +194,6 @@ module.exports = {
         options: {
           exposes: '$',
         },
-      },
-      {
-        test: /\.pug$/,
-        use: [
-          {
-            loader: 'pug-loader',
-          },
-        ],
       },
       {
         test: /\.(woff(2)?|ttf|eot|svg)(\?v=\d+\.\d+\.\d+)?$/,
@@ -228,6 +233,27 @@ module.exports = {
       {
         test: /\.svg$/,
         loader: 'svg-inline-loader'
+      },
+      {
+        test: /assets\/index\.pug$/,
+        use: [
+          {
+            loader: 'pug-loader',
+          },
+        ],
+      },
+      {
+        test: /\.pug$/i,
+        exclude: /assets\/index\.pug$/,
+        use: [
+          {
+            loader: 'apply-loader',
+          },
+          {
+            loader: 'pug-loader',
+            options: pugLoaderOptions
+          },
+        ],
       },
     ],
   },

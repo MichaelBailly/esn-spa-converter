@@ -72,6 +72,7 @@ module.exports = {
     {
       name: 'linagora.esn.account',
       angularModuleName: 'linagora.esn.account',
+      shortName: 'account', // used to find back pug templates
       frontendRoot: 'frontend',
       cssRoot: 'frontend/css/styles.less',
       fileRoot: 'frontend/js',
@@ -114,6 +115,7 @@ module.exports = {
     {
       name: 'linagora.esn.user.status',
       angularModuleName: 'linagora.esn.user-status',
+      shortName: 'user-status',
       frontendRoot: 'frontend',
       cssRoot: 'frontend/app/user-status.styles.less',
       fileRoot: 'frontend/app',

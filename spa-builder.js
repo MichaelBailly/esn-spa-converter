@@ -3,23 +3,30 @@ const fs = require('fs');
 const mkdirp = require('mkdirp');
 const glob = require('glob-all');
 const copyDir = require('copy-dir');
+const rimraf = require('rimraf');
 const replace = require('replace-in-file');
+const pug = require('pug');
 const CommonLibsBuilder = require('./common-libs-builder');
 
 const {
   cleanSourceDir,
   extractAssetsFromCoreModules,
-  extractAssetFromDependenceModules
+  extractAssetFromDependenceModules,
+  extractAssetsFromAwesomeModule,
+  replacePugCallsToAngularTranslate,
+  resolveTemplateFromNgTemplateUrl
 } = require('./file-utils');
 const { dependenceModules } = require('./constants');
 
 class SpaBuilder {
   constructor(spa) {
     this.spa = spa;
+    this.warnings = [];
     this.SOURCEDIR = path.resolve(__dirname, 'src');
     this.dirname = __dirname;
     this.commonLibsBuilder = new CommonLibsBuilder(this.SOURCEDIR);
     this.esnPath = 'node_modules/linagora-rse';
+    this.commonLibsPath = 'node_modules/esn-frontend-common-libs';
     this.dependantModulesBase = path.resolve(this.dirname, 'node_modules');
     this.bowerOrphanedRoot = path.resolve(this.SOURCEDIR, 'components');
   }
@@ -35,10 +42,32 @@ class SpaBuilder {
     this.copyAwesomeModulesFrontend(this.spa.coreModules, this.spa.dependenceModules);
     this.copyBowerOrphanedComponents();
     this.fixLessImports();
+    this.spa.coreModules.forEach((mod) => this.fixPug(mod));
+    if (this.spa.dependenceModules) {
+      this.spa.dependenceModules.forEach((mod) => this.fixPug(mod));
+    }
+    this.spa.coreModules.forEach((mod) => this.setRequirePugInAngular(mod));
+    if (this.spa.dependenceModules) {
+      this.spa.dependenceModules.forEach((mod) => this.setRequirePugInAngular(mod));
+    }
+
     this.createAngularInjectionsFile(allAwesomeModuleAngularModuleNames);
     this.createLessFile(allAwesomeModulesLessEntries);
     this.createIndexJsFile(allAwesomeModulesJsFiles);
     this.createModuleMetaFile(coreModulesData, depedentModulesData);
+
+    console.log('### Process is complete ###');
+    this.displayWarnings();
+  }
+
+  displayWarnings() {
+    if (!this.warnings.length) {
+      return;
+    }
+    console.log('');
+    console.log('The process encountered anomalies that a real human need to investigate:');
+    console.log('');
+    console.log(this.warnings.join('\n---------------------------------------------\n'));
   }
 
   createModuleMetaFile() {
@@ -57,6 +86,12 @@ class SpaBuilder {
       files: `${this.SOURCEDIR}/**/*.less`,
       from: /\.\.\/\.\.\/\.\.\/unifiedinbox\/images\/select.png/g,
       to: '../../images/select.png'
+    });
+
+    replace.sync({
+      files: `${this.SOURCEDIR}/**/*.less`,
+      from: /\.\.\/components\/material-admin/g,
+      to: '~esn-frontend-common-libs/src/frontend/components/material-admin'
     });
   }
 
@@ -141,6 +176,10 @@ class SpaBuilder {
       const srcPath = path.resolve(this.dirname, this.esnPath, 'modules', mod.name, 'frontend');
       const destPath = path.resolve(this.SOURCEDIR, mod.name);
       copyDir.sync(srcPath, destPath);
+
+      // remove "bower" components folder from source
+      // useful bower module will be reinstalled
+      rimraf.sync(path.resolve(destPath, 'components'));
     });
 
     const deps = dependenceModules || [];
@@ -150,6 +189,10 @@ class SpaBuilder {
       const srcPath = path.resolve(this.dependantModulesBase, mod.name, 'frontend');
       const destPath = path.resolve(this.SOURCEDIR, mod.name);
       copyDir.sync(srcPath, destPath);
+
+      // remove "bower" components folder from source
+      // useful bower module will be reinstalled
+      rimraf.sync(path.resolve(destPath, 'components'));
     });
   }
 
@@ -244,6 +287,116 @@ class SpaBuilder {
       const srcDir = path.resolve(this.dependantModulesBase, mod.in, 'frontend', 'components', mod.name);
       console.log('copy', mod.name, srcDir, this.bowerOrphanedRoot);
       copyDir.sync(srcDir, path.resolve(this.bowerOrphanedRoot, mod.name));
+    });
+  }
+
+  fixPug(mod) {
+    console.log('Rewriting pug files');
+    const moduleRoot = path.resolve(this.SOURCEDIR, mod.name);
+    const pugFiles = glob.sync(mod.pugGlob.map((e) => {
+      if (e.startsWith('!')) {
+        return `!${moduleRoot}/${e.substr(1)}`;
+      } else {
+        return `${moduleRoot}/${e}`
+      }
+    }));
+    const renderOps = [];
+    const pugOptions = mod.pugOptions ? { ...mod.pugOptions} : {};
+    if (pugOptions.basedir) {
+      pugOptions.basedir = path.resolve(this.dirname, pugOptions.basedir);
+    }
+
+    pugFiles.forEach((f) => {
+      let fileContents = fs.readFileSync(f, 'utf8');
+      fileContents = replacePugCallsToAngularTranslate(fileContents, (warning) => this.warnings.push(warning + `File: ${f}\n`));
+      renderOps.push(renderOp(fileContents, pugOptions, f));
+      fs.writeFileSync(f, fileContents);
+    });
+
+    while (renderOps.length) {
+      renderOps.shift()();
+    }
+
+    function renderOp(fileContents, pugOptions, filename) {
+      const options = { ...pugOptions, filename };
+      return () => {
+        try {
+          pug.render(fileContents, options);
+        } catch (e) {
+          console.log('pug file rendering failed');
+          console.log('file', filename);
+          console.log('contents', fileContents);
+          throw e;
+        }
+      }
+    }
+  }
+
+  setRequirePugInAngular(mod) {
+    console.log('Set require(\'...pug\') in javascrit code');
+    const baseAssetsRoot = `src/${mod.name}/${mod.fileRoot.replace('frontend/', '')}`;
+    const allJsFiles = extractAssetsFromAwesomeModule(mod, baseAssetsRoot).files;
+    const mappings = [
+      {
+        from: '/modules/',
+        to: path.resolve(this.dirname, this.commonLibsPath, 'src/frontend/js/modules')
+      },
+      {
+        from: `/${mod.shortName}/app/`,
+        to: path.resolve(this.SOURCEDIR, mod.name, 'app')
+      },
+      {
+        from: `/${mod.shortName}/views/`,
+        to: path.resolve(this.SOURCEDIR, mod.name, 'views')
+      },
+    ];
+    allJsFiles.forEach((f) => {
+      let fileContents = fs.readFileSync(f, 'utf8');
+      fileContents = fileContents.replace(/(templateUrl:\s+'([^']+)')/g, (match, p1, p2) => {
+        if (p2 === '/unifiedinbox/app/components/composer/boxed/composer-boxed.html') {
+          this.warnings.push(`In the task moving from "templateUrl: string" to "template: require('pugfile')"
+
+The templateUrl has not been changed for path ${p2}. This would break application.
+BoxOVerlay system should support "template" attriute before updating this line.
+`);
+          return match;
+        } else if (p2 === '/calendar/app/search/event/event-search-item.html') {
+          this.warnings.push(`In the task moving from "templateUrl: string" to "template: require('pugfile')"
+
+The templateUrl has not been changed for path ${p2}. This would break application.
+BoxOVerlay system should support "template" attriute before updating this line.
+`);
+          return match;
+        } else if (p2 === '/contact/app/search/contact-search.html') {
+          this.warnings.push(`In the task moving from "templateUrl: string" to "template: require('pugfile')"
+
+The templateUrl has not been changed for path ${p2}. This would break application.
+BoxOVerlay system should support "template" attriute before updating this line.
+`);
+          return match;
+        }
+        let pugFile;
+        try {
+          pugFile = resolveTemplateFromNgTemplateUrl(p2, mappings);
+        } catch(e) {
+          console.log('Angular File :', f);
+          this.warnings.push(`In the task moving from "templateUrl: string" to "template: require('pugfile')"
+For file: ${f}
+Pug template file could not be found. templateUrl=${p2}
+Leaving original content "${match}"
+`);
+          return match;
+        }
+        let relativePath = path.relative(path.dirname(f), path.dirname(pugFile));
+        if (relativePath.length && !relativePath.startsWith('.')) {
+          relativePath = `./${relativePath}`;
+        } else if (!relativePath.length) {
+          relativePath = './';
+        }
+        const back = `template: require("${relativePath}/${path.basename(pugFile)}")`;
+        return back;
+      });
+      fs.writeFileSync(f, fileContents);
     });
   }
 }
