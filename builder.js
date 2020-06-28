@@ -268,7 +268,7 @@ function fixAngularTemplateImports() {
   allJsFiles.forEach((f) => {
     let fileContents = readFileSync(f, 'utf8');
     fileContents = fileContents.replace(/(templateUrl:\s+'([^']+)')/g, function(match, p1, p2) {
-      const pugFile = resolveTemplateFromNgTemplateUrl(p2, mappings);
+      const pugFile = resolveTemplateFromNgTemplateUrl(p2, mappings, path.dirname(f));
       let relativePath = path.relative(path.dirname(f), path.dirname(pugFile));
       if (relativePath.length && !relativePath.startsWith('.')) {
         relativePath = `./${relativePath}`;

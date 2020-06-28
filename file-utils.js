@@ -334,6 +334,7 @@ function copyComponents(SOURCEDIR, components) {
 }
 
 /*
+  resolve a pug file, starting with a 'templateUrl' string
   mappings: [
     {
       from: '/views',
@@ -341,8 +342,16 @@ function copyComponents(SOURCEDIR, components) {
     }
   ]
   */
-function resolveTemplateFromNgTemplateUrl(templateUrl, mappings) {
+function resolveTemplateFromNgTemplateUrl(templateUrl, mappings, srcDir = null) {
   let pugFile;
+
+  if (srcDir) {
+    pugFile = `${srcDir}/${path.basename(templateUrl).replace('.html', '.pug')}`;
+    try {
+      accessSync(pugFile, ACCESS_READ);
+      return pugFile;
+    } catch (e) { }
+  }
 
   const candidate = [];
   mappings.forEach((mapping) => {

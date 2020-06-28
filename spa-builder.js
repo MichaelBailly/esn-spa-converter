@@ -377,7 +377,7 @@ BoxOVerlay system should support "template" attriute before updating this line.
         }
         let pugFile;
         try {
-          pugFile = resolveTemplateFromNgTemplateUrl(p2, mappings);
+          pugFile = resolveTemplateFromNgTemplateUrl(p2, mappings, path.dirname(f));
         } catch(e) {
           console.log('Angular File :', f);
           this.warnings.push(`In the task moving from "templateUrl: string" to "template: require('pugfile')"
