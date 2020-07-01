@@ -346,7 +346,7 @@ function resolveTemplateFromNgTemplateUrl(templateUrl, mappings, srcDir = null) 
   let pugFile;
 
   if (srcDir) {
-    pugFile = `${srcDir}/${path.basename(templateUrl).replace('.html', '.pug')}`;
+    pugFile = path.resolve(srcDir, path.basename(templateUrl).replace('.html', '.pug'));
     try {
       accessSync(pugFile, ACCESS_READ);
       return pugFile;

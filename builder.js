@@ -273,7 +273,7 @@ function fixAngularTemplateImports() {
       if (relativePath.length && !relativePath.startsWith('.')) {
         relativePath = `./${relativePath}`;
       } else if (!relativePath.length) {
-        relativePath = './';
+        relativePath = '.';
       }
       const back = `template: require("${relativePath}/${path.basename(pugFile)}")`;
       return back;

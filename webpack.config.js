@@ -1,7 +1,5 @@
 const path = require('path');
 const { accessSync } = require('fs');
-const { R_OK } = require('fs').constants;
-const glob = require('glob-all');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
@@ -36,11 +34,6 @@ module.exports = {
     filename: 'main.js',
     path: path.resolve(__dirname, 'dist'),
   },
-  resolve: {
-    alias: {
-      'esn-frontend-common-libs': commonLibsPath,
-    },
-  },
   plugins: [
     new webpack.IgnorePlugin({ resourceRegExp: /codemirror/ }), // for summernote
     new webpack.ProvidePlugin({
@@ -57,6 +50,9 @@ module.exports = {
       DOMPurify: 'dompurify', // for unifiedinbox
       localforage: 'localforage', // for calendar
     }),
+    /*
+     * To transform assets/index.pug to an HTML file, with webpack autoimporting the "main.js" bundle
+     */
     new HtmlWebpackPlugin({
       template: './assets/index.pug',
       filename: './index.html'
@@ -234,6 +230,10 @@ module.exports = {
         test: /\.svg$/,
         loader: 'svg-inline-loader'
       },
+      /*
+      * for the "index.html" file of this SPA.
+      *
+      */
       {
         test: /assets\/index\.pug$/,
         use: [
