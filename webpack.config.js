@@ -9,6 +9,7 @@ let angularCommon = path.resolve(__dirname, 'node_modules', 'esn-frontend-common
 const angularInjections = path.resolve(__dirname, 'src', 'require-angular-injections.js');
 let chartJs = path.resolve(__dirname, 'node_modules', 'esn-frontend-common-libs', 'src', 'frontend', 'components', 'Chart.js/Chart.js')
 let materialAdmin = path.resolve(__dirname, 'node_modules', 'esn-frontend-common-libs', 'src', 'frontend', 'js', 'material.js');
+let momentPath = path.resolve(__dirname, 'node_modules', 'moment', 'moment.js');
 let pugLoaderOptions = {
   root: `${__dirname}/node_modules/esn-frontend-common-libs/src/frontend/views`
 };
@@ -33,6 +34,12 @@ module.exports = {
   output: {
     filename: 'main.js',
     path: path.resolve(__dirname, 'dist'),
+  },
+  resolve: {
+    alias: {
+      'moment/moment.js': momentPath,
+      'moment$': momentPath
+    },
   },
   plugins: [
     new webpack.IgnorePlugin({ resourceRegExp: /codemirror/ }), // for summernote
