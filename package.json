@@ -69,7 +69,7 @@
     "roboto-fontface": "0.4.3",
     "sanitize-html": "github:linagora/sanitize-html#c89d4ebe09da48296f33cc80ddcc02e11d853265",
     "save-dev": "0.0.1-security",
-    "showdown": "1.5.0",
+    "showdown": "1.9.1",
     "summernote": "github:linagora/summernote#0.8.2-1",
     "ui-router-extras": "0.1.0",
     "ui-select": "0.19.8",
